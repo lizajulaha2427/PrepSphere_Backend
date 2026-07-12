@@ -22,5 +22,16 @@ app.use('/api/reviews', reviewsRouter);
 app.use("/api/progress", progressRoutes);
 app.use("/api/interview", interviewRoutes);
 
-
+app.get("/test", async (req, res) => {
+  try {
+    const response = await fetch("https://www.google.com");
+    res.json({
+      status: response.status,
+      ok: response.ok
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err.message);
+  }
+});
 app.listen(4000, () => console.log("🚀 Server running on http://localhost:4000"));
