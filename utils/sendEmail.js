@@ -1,23 +1,35 @@
-import sgMail from "@sendgrid/mail";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+dotenv.config();
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 export const sendOTPEmail = async (email, otp) => {
   try {
-    const msg = {
+    await transporter.sendMail({
+      from: `"PrepSphere" <${process.env.EMAIL_USER}>`,
       to: email,
-      from: {
-        email: "jiya210113@gmail.com", // VERIFIED sender
-        name: "PrepRoadmap",
-      },
       subject: "Your OTP Code",
-      html: `<h3>Your OTP is: <b>${otp}</b></h3>
-             <p>Valid for 10 minutes</p>`,
-    };
+      html: `
+        <div style="font-family: Arial, sans-serif;">
+          <h2>PrepSphere Email Verification</h2>
+          <p>Your OTP is:</p>
+          <h1 style="letter-spacing:4px;">${otp}</h1>
+          <p>This OTP is valid for <b>10 minutes</b>.</p>
+        </div>
+      `,
+    });
 
-    await sgMail.send(msg);
-    console.log("OTP email sent to:", email);
+    console.log("OTP sent successfully.");
   } catch (err) {
-    console.error("SendGrid API error:", err.response?.body || err);
+    console.error("Email Error:", err);
+    throw err;
   }
 };
