@@ -10,6 +10,8 @@ dotenv.config();
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 
+
+
 // REGISTER
 router.post("/register", async (req, res) => {
   try {
