@@ -1,37 +1,29 @@
-import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import Brevo from "@getbrevo/brevo";
 
 dotenv.config();
 
-console.log("SMTP_USER:", process.env.SMTP_USER ? "Loaded" : "Missing");
-console.log("SMTP_PASS:", process.env.SMTP_PASS ? "Loaded" : "Missing");
-console.log("SMTP_FROM:", process.env.SMTP_FROM ? "Loaded" : "Missing");
+const apiInstance = new Brevo.TransactionalEmailsApi();
 
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-transporter.verify((error) => {
-  if (error) {
-    console.error("SMTP Verify Error:", error);
-  } else {
-    console.log("✅ SMTP Server is ready");
-  }
-});
+apiInstance.setApiKey(
+  Brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
 
 export const sendOTPEmail = async (email, otp) => {
   try {
-    const info = await transporter.sendMail({
-      from: `"PrepSphere" <${process.env.SMTP_FROM}>`,
-      to: email,
+    await apiInstance.sendTransacEmail({
+      sender: {
+        name: "PrepSphere",
+        email: process.env.SMTP_FROM,
+      },
+      to: [
+        {
+          email,
+        },
+      ],
       subject: "Your OTP Code",
-      html: `
+      htmlContent: `
         <div style="font-family: Arial, sans-serif;">
           <h2>PrepSphere Email Verification</h2>
           <p>Your OTP is:</p>
@@ -41,9 +33,9 @@ export const sendOTPEmail = async (email, otp) => {
       `,
     });
 
-    console.log("✅ Email sent:", info.messageId);
+    console.log("✅ Email sent successfully");
   } catch (err) {
-    console.error("❌ Email Error:", err);
+    console.error("Brevo API Error:", err);
     throw err;
   }
 };
