@@ -3,6 +3,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+console.log("SMTP_USER:", process.env.SMTP_USER ? "Loaded" : "Missing");
+console.log("SMTP_PASS:", process.env.SMTP_PASS ? "Loaded" : "Missing");
+console.log("SMTP_FROM:", process.env.SMTP_FROM ? "Loaded" : "Missing");
+
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
   port: 587,
@@ -11,20 +15,23 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
-transporter.verify((error, success) => {
+transporter.verify((error) => {
   if (error) {
-    console.error("SMTP Error:", error);
+    console.error("SMTP Verify Error:", error);
   } else {
-    console.log("SMTP Server is ready");
+    console.log("✅ SMTP Server is ready");
   }
 });
 
 export const sendOTPEmail = async (email, otp) => {
   try {
-    await transporter.sendMail({
-      from: `"PrepSphere" <${process.env.EMAIL_USER}>`,
+    const info = await transporter.sendMail({
+      from: `"PrepSphere" <${process.env.SMTP_FROM}>`,
       to: email,
       subject: "Your OTP Code",
       html: `
@@ -37,9 +44,9 @@ export const sendOTPEmail = async (email, otp) => {
       `,
     });
 
-    console.log("OTP sent successfully.");
+    console.log("✅ Email sent:", info.messageId);
   } catch (err) {
-    console.error("Email Error:", err);
+    console.error("❌ Email Error:", err);
     throw err;
   }
 };
